@@ -1,35 +1,55 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { ChartIcon, ListIcon } from "@/components/Icons"
+import { useTheme } from "@/hooks/use-theme"
+import { Tabs } from "expo-router"
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+/**
+ * Tabs Layout - Main screen với 2 tabs
+ */
+export default function TabsLayout() {
+  const theme = useTheme()
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: theme.colors.surface,
+        },
+        headerTintColor: theme.colors.text,
+        headerTitleStyle: {
+          fontWeight: theme.fontWeight.semibold,
+          fontSize: theme.fontSize.lg,
+        },
+        tabBarStyle: {
+          backgroundColor: theme.colors.surface,
+          borderTopColor: theme.colors.border,
+          borderTopWidth: 1,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors.textMuted,
+        tabBarLabelStyle: {
+          fontSize: theme.fontSize.sm,
+          fontWeight: theme.fontWeight.medium,
+        },
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="money-flow"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: "Dòng tiền",
+          tabBarIcon: ({ color, size }) => <ListIcon size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="statistics"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: "Thống kê",
+          tabBarIcon: ({ color, size }) => <ChartIcon size={size} color={color} />,
         }}
       />
     </Tabs>
-  );
+  )
 }

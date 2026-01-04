@@ -1,0 +1,110 @@
+Tree view of: D:\D-Documents\Code_VCN\Money_Flow_Manager\moneyflow-manager
+
+├── .expo
+│   ├── README.md
+│   ├── devices.json
+│   ├── types
+│   │   └── router.d.ts
+│   └── web
+│       └── cache
+│           └── production
+│               └── images
+│                   └── favicon
+│                       └── favicon-a4e030697a7571b3e95d31860e4da55d2f98e5e861e2b55e414f45a8556828ba-contain-transparent
+│                           └── favicon-48.png
+├── .github
+│   └── copilot-instructions.md
+├── .gitignore
+├── .prettierignore
+├── .prettierrc.json
+├── APP-DESCRIPTION.md
+├── README.md
+├── TASK-GUIDE.md
+├── app
+│   ├── (tabs)
+│   │   ├── _layout.tsx
+│   │   ├── money-flow.tsx
+│   │   └── statistics.tsx
+│   ├── _layout.tsx
+│   ├── index.tsx
+│   └── onboarding.tsx
+├── app.json
+├── assets
+│   ├── fonts
+│   │   └── Inter
+│   │       ├── Inter-Italic-VariableFont_opsz,wght.ttf
+│   │       └── Inter-VariableFont_opsz,wght.ttf
+│   └── images
+│       └── splash.svg
+├── check-ts.cmd
+├── dev.cmd
+├── eslint.config.js
+├── expo-env.d.ts
+├── package-lock.json
+├── package.json
+├── print_project_tree.py
+├── project_tree.txt
+├── scripts
+│   ├── db
+│   │   ├── init-db.js
+│   │   └── init-db.ts
+│   └── reset-project.js
+├── src
+│   ├── components
+│   │   ├── Button.tsx
+│   │   ├── Icons.tsx
+│   │   └── TextField.tsx
+│   ├── configs
+│   │   ├── db
+│   │   │   ├── db-backup.ts
+│   │   │   ├── db-initializer.ts
+│   │   │   ├── db-manager.ts
+│   │   │   └── repository
+│   │   │       ├── account-settings.repo.ts
+│   │   │       ├── account.repo.ts
+│   │   │       ├── app-settings.repo.ts
+│   │   │       └── schema-version.repo.ts
+│   │   └── sql
+│   │       ├── indexes
+│   │       │   ├── account_settings_indexes.sql
+│   │       │   ├── categories_indexes.sql
+│   │       │   └── transactions_indexes.sql
+│   │       ├── sql-loader.ts
+│   │       ├── tables
+│   │       │   ├── account_settings.sql
+│   │       │   ├── accounts.sql
+│   │       │   ├── app_settings.sql
+│   │       │   ├── categories.sql
+│   │       │   ├── schema_versions.sql
+│   │       │   └── transactions.sql
+│   │       └── triggers
+│   │           ├── account_settings_triggers.sql
+│   │           ├── accounts_triggers.sql
+│   │           ├── app_settings_triggers.sql
+│   │           ├── categories_triggers.sql
+│   │           └── transactions_triggers.sql
+│   ├── constants
+│   │   ├── formats.ts
+│   │   └── messages.ts
+│   ├── hooks
+│   │   ├── use-color-scheme.ts
+│   │   └── use-theme.ts
+│   ├── stores
+│   │   └── settings.store.ts
+│   ├── theme
+│   │   ├── colors.ts
+│   │   ├── themes.ts
+│   │   └── tokens.ts
+│   └── utils
+│       ├── formatters.ts
+│       ├── helpers.ts
+│       └── types
+│           ├── db
+│           │   ├── account-settings.type.ts
+│           │   ├── account.type.ts
+│           │   ├── app-settings.type.ts
+│           │   ├── category.type.ts
+│           │   ├── schema-version.type.ts
+│           │   └── transaction.type.ts
+│           └── theme.type.ts
+└── tsconfig.json
