@@ -36,7 +36,7 @@
     - Danh mục
     - Loại giao dịch (Expense hoặc Income, hiển thị bằng màu sắc khác nhau: đỏ cho Expense, xanh cho Income)
   - Có 1 floating button ở góc dưới bên phải để người dùng thêm giao dịch mới. Khi nhấn vào button này, người dùng sẽ được chuyển đến màn hình thêm giao dịch mới, nơi họ có thể nhập thông tin về giao dịch. Màn hình thêm giao dịch mới sẽ có 2 màn hình con, 1 màn hình con cho Expense (mặc định) và 1 màn hình con cho Income. Người dùng có thể chuyển đổi giữa 2 màn hình con này bằng cách vuốt qua trái hoặc phải. Ở mỗi màn hình con, người dùng sẽ nhập các thông tin sau:
-    - Số tiền (bắt buộc, chỉ nhận giá trị số dương, phân tách phần nghìn bằng dấu phẩy, bàn phím số hiện lên khi người dùng nhấn vào ô nhập số tiền)
+    - Số tiền (bắt buộc, có thể nhập giá trị số thực, phân tách phần nghìn bằng dấu phẩy, bàn phím số hiện lên khi người dùng nhấn vào ô nhập số tiền)
     - Ngày giao dịch (mặc định là ngày hiện tại, người dùng có thể chọn ngày khác)
     - Mô tả giao dịch (tùy chọn, làm theo dạng autosize textfield)
     - Danh mục (người dùng có thể chọn từ danh sách các danh mục có sẵn hoặc thêm danh mục mới)

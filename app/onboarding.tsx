@@ -1,5 +1,5 @@
+import MoneyFlowIcon from "@/../assets/images/icons/money-flow-icon.svg"
 import { Button } from "@/components/Button"
-import { MoneyFlowIcon } from "@/components/Icons"
 import { TextField } from "@/components/TextField"
 import { AccountSettingsRepository } from "@/configs/db/repository/account-settings.repo"
 import { AccountRepository } from "@/configs/db/repository/account.repo"
@@ -8,7 +8,6 @@ import { useTheme } from "@/hooks/use-theme"
 import { router } from "expo-router"
 import { useState } from "react"
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native"
-
 /**
  * Onboarding Screen - Tạo account đầu tiên
  */
@@ -68,7 +67,7 @@ export default function OnboardingScreen() {
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.iconContainer}>
-              <MoneyFlowIcon size={80} color={theme.colors.primary} />
+              <MoneyFlowIcon width={80} height={80} color={theme.colors.primary} />
             </View>
 
             <Text

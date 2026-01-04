@@ -1,4 +1,5 @@
-import { EmptyStateIcon } from "@/components/Icons"
+import EmptyStateIcon from "@/../assets/images/icons/empty-state.svg"
+import { AddTransactionButton } from "@/components/ui/AddTransactionButton"
 import { useTheme } from "@/hooks/use-theme"
 import { StyleSheet, Text, View } from "react-native"
 
@@ -11,7 +12,7 @@ export default function StatisticsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.content}>
-        <EmptyStateIcon size={120} color={theme.colors.textMuted} backgroundColor={theme.colors.surface} />
+        <EmptyStateIcon width={120} height={120} fill={theme.colors.textMuted} />
         <Text
           style={[
             styles.text,
@@ -25,6 +26,8 @@ export default function StatisticsScreen() {
           Tính năng đang phát triển
         </Text>
       </View>
+
+      <AddTransactionButton />
     </View>
   )
 }

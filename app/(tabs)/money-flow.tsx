@@ -1,9 +1,19 @@
-import { EmptyStateIcon, PlusIcon } from "@/components/Icons"
+import EmptyStateIcon from "@/../assets/images/icons/empty-state.svg"
+import { AddTransactionButton } from "@/components/ui/AddTransactionButton"
 import { AccountRepository } from "@/configs/db/repository/account.repo"
+import { TransactionRepository } from "@/configs/db/repository/transaction.repo"
 import { useTheme } from "@/hooks/use-theme"
+import { formatCurrency, formatDate } from "@/utils/formatters"
 import { TAccount } from "@/utils/types/db/account.type"
-import { useEffect, useState } from "react"
-import { Pressable, StyleSheet, Text, View } from "react-native"
+import { TTransaction } from "@/utils/types/db/transaction.type"
+import { useFocusEffect } from "@react-navigation/native"
+import { useCallback, useEffect, useState } from "react"
+import { FlatList, StyleSheet, Text, View } from "react-native"
+
+type TGroupedTransaction = {
+  date: number
+  transactions: TTransaction[]
+}
 
 /**
  * Money Flow Screen - Tab "Dòng tiền"
@@ -11,22 +21,63 @@ import { Pressable, StyleSheet, Text, View } from "react-native"
 export default function MoneyFlowScreen() {
   const theme = useTheme()
   const [currentAccount, setCurrentAccount] = useState<TAccount | null>(null)
+  const [transactions, setTransactions] = useState<TGroupedTransaction[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     loadAccount()
   }, [])
 
+  useFocusEffect(
+    useCallback(() => {
+      if (currentAccount) {
+        loadTransactions()
+      }
+    }, [currentAccount])
+  )
+
   const loadAccount = async () => {
     try {
-      const accountAdapter = new AccountRepository()
-      const account = await accountAdapter.getFirst()
+      const accountRepo = new AccountRepository()
+      const account = await accountRepo.getFirst()
       setCurrentAccount(account)
     } catch (error) {
       console.error("Error loading account:", error)
     } finally {
       setLoading(false)
     }
+  }
+
+  const loadTransactions = async () => {
+    if (!currentAccount) return
+
+    try {
+      const transactionRepo = new TransactionRepository()
+      const data = await transactionRepo.getByAccountId(currentAccount.id)
+
+      const grouped = groupTransactionsByDate(data)
+      setTransactions(grouped)
+    } catch (error) {
+      console.error("Error loading transactions:", error)
+    }
+  }
+
+  const groupTransactionsByDate = (data: TTransaction[]): TGroupedTransaction[] => {
+    const grouped = data.reduce((acc, transaction) => {
+      const dateKey = transaction.transaction_date
+      if (!acc[dateKey]) {
+        acc[dateKey] = []
+      }
+      acc[dateKey].push(transaction)
+      return acc
+    }, {} as Record<number, TTransaction[]>)
+
+    return Object.entries(grouped)
+      .map(([date, transactions]) => ({
+        date: parseInt(date),
+        transactions,
+      }))
+      .sort((a, b) => b.date - a.date)
   }
 
   return (
@@ -59,57 +110,109 @@ export default function MoneyFlowScreen() {
           </Text>
         )}
       </View>
-
       {/* Transactions List */}
-      <View style={styles.content}>
-        <View style={styles.emptyState}>
-          <EmptyStateIcon size={120} color={theme.colors.textMuted} backgroundColor={theme.colors.surface} />
-          <Text
-            style={[
-              styles.emptyText,
-              {
-                color: theme.colors.textMuted,
-                fontSize: theme.fontSize.lg,
-                marginTop: theme.spacing.md,
-              },
-            ]}
-          >
-            Chưa có giao dịch nào
-          </Text>
-          <Text
-            style={[
-              styles.emptySubtext,
-              {
-                color: theme.colors.textMuted,
-                fontSize: theme.fontSize.sm,
-                marginTop: theme.spacing.xs,
-              },
-            ]}
-          >
-            Nhấn vào nút + để thêm giao dịch đầu tiên
-          </Text>
+      {transactions.length === 0 ? (
+        <View style={styles.content}>
+          <View style={styles.emptyState}>
+            <EmptyStateIcon width={96} height={96} fill={theme.colors.primary} />
+            <Text
+              style={[
+                styles.emptyText,
+                {
+                  color: theme.colors.textMuted,
+                  fontSize: theme.fontSize.lg,
+                  marginTop: theme.spacing.md,
+                },
+              ]}
+            >
+              Chưa có giao dịch nào
+            </Text>
+            <Text
+              style={[
+                styles.emptySubtext,
+                {
+                  color: theme.colors.textMuted,
+                  fontSize: theme.fontSize.sm,
+                  marginTop: theme.spacing.xs,
+                },
+              ]}
+            >
+              Nhấn vào nút + để thêm giao dịch đầu tiên
+            </Text>
+          </View>
         </View>
-      </View>
+      ) : (
+        <FlatList
+          data={transactions}
+          keyExtractor={(item) => item.date.toString()}
+          renderItem={({ item }) => (
+            <View style={[styles.dateGroup, { backgroundColor: theme.colors.surface }]}>
+              <Text
+                style={[
+                  styles.dateHeader,
+                  {
+                    color: theme.colors.text,
+                    fontSize: theme.fontSize.md,
+                    fontWeight: theme.fontWeight.semibold,
+                  },
+                ]}
+              >
+                {formatDate(item.date)}
+              </Text>
+              {item.transactions.map((transaction) => (
+                <View
+                  key={transaction.id}
+                  style={[styles.transactionItem, { backgroundColor: theme.colors.background }]}
+                >
+                  <View style={styles.transactionInfo}>
+                    <Text
+                      style={[
+                        styles.transactionAmount,
+                        {
+                          fontSize: theme.fontSize.lg,
+                          fontWeight: theme.fontWeight.bold,
+                          color: transaction.type === "income" ? theme.colors.success : theme.colors.danger,
+                        },
+                      ]}
+                    >
+                      {transaction.type === "income" ? "+" : "-"}
+                      {formatCurrency(transaction.amount)}
+                    </Text>
+                    {transaction.description && (
+                      <Text
+                        style={[
+                          styles.transactionDescription,
+                          {
+                            color: theme.colors.textMuted,
+                            fontSize: theme.fontSize.sm,
+                          },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {transaction.description}
+                      </Text>
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.transactionTime,
+                      {
+                        color: theme.colors.textMuted,
+                        fontSize: theme.fontSize.sm,
+                      },
+                    ]}
+                  >
+                    {transaction.transaction_time}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+          contentContainerStyle={{ paddingBottom: 16 }}
+        />
+      )}
 
-      {/* Floating Action Button */}
-      <View style={styles.fabContainer}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.fab,
-            {
-              backgroundColor: theme.colors.primary,
-              shadowColor: theme.colors.text,
-              opacity: pressed ? 0.8 : 1,
-            },
-          ]}
-          onPress={() => {
-            // TODO: Navigate to add transaction screen
-            console.log("Add transaction pressed")
-          }}
-        >
-          <PlusIcon size={24} color="#ffffff" />
-        </Pressable>
-      </View>
+      <AddTransactionButton />
     </View>
   )
 }
@@ -144,20 +247,33 @@ const styles = StyleSheet.create({
   emptySubtext: {
     textAlign: "center",
   },
-  fabContainer: {
-    position: "absolute",
-    right: 16,
-    bottom: 16,
+  dateGroup: {
+    marginTop: 16,
+    marginHorizontal: 16,
+    borderRadius: 12,
+    padding: 12,
   },
-  fab: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: "center",
+  dateHeader: {
+    marginBottom: 8,
+  },
+  transactionItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  transactionInfo: {
+    flex: 1,
+  },
+  transactionAmount: {
+    fontFamily: "Inter",
+  },
+  transactionDescription: {
+    marginTop: 4,
+  },
+  transactionTime: {
+    marginLeft: 8,
   },
 })

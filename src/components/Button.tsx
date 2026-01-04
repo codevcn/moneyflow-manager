@@ -1,7 +1,8 @@
-import { palette } from "@/theme/colors"
+import { useTheme } from "@/hooks/use-theme"
+import { TAppTheme } from "@/utils/types/theme.type"
 import { Pressable, StyleSheet, Text, ViewStyle } from "react-native"
 
-interface ButtonProps {
+type TButtonProps = {
   title: string
   onPress: () => void
   variant?: "primary" | "secondary"
@@ -9,7 +10,48 @@ interface ButtonProps {
   style?: ViewStyle
 }
 
-export function Button({ title, onPress, variant = "primary", disabled = false, style }: ButtonProps) {
+function createStyles(theme: TAppTheme) {
+  return StyleSheet.create({
+    button: {
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.lg,
+      borderRadius: theme.radius.md,
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: 56,
+    },
+    primary: {
+      backgroundColor: theme.colors.primary,
+    },
+    secondary: {
+      backgroundColor: "transparent",
+      borderWidth: 2,
+      borderColor: theme.colors.primary,
+    },
+    disabled: {
+      opacity: 0.5,
+    },
+    pressed: {
+      opacity: 0.8,
+    },
+    text: {
+      fontFamily: "Inter",
+      fontSize: theme.fontSize.lg,
+      fontWeight: theme.fontWeight.semibold,
+    },
+    primaryText: {
+      color: theme.colors.background,
+    },
+    secondaryText: {
+      color: theme.colors.primary,
+    },
+  })
+}
+
+export function Button({ title, onPress, variant = "primary", disabled = false, style }: TButtonProps) {
+  const theme = useTheme()
+  const styles = createStyles(theme)
+
   return (
     <Pressable
       style={({ pressed }) => [
@@ -28,39 +70,3 @@ export function Button({ title, onPress, variant = "primary", disabled = false, 
     </Pressable>
   )
 }
-
-const styles = StyleSheet.create({
-  button: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 56,
-  },
-  primary: {
-    backgroundColor: palette.primaryBlue,
-  },
-  secondary: {
-    backgroundColor: "transparent",
-    borderWidth: 2,
-    borderColor: palette.primaryBlue,
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  pressed: {
-    opacity: 0.8,
-  },
-  text: {
-    fontFamily: "Inter",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  primaryText: {
-    color: palette.white,
-  },
-  secondaryText: {
-    color: palette.primaryBlue,
-  },
-})

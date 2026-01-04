@@ -35,11 +35,14 @@ Tree view of: D:\D-Documents\Code_VCN\Money_Flow_Manager\moneyflow-manager
 │   │       ├── Inter-Italic-VariableFont_opsz,wght.ttf
 │   │       └── Inter-VariableFont_opsz,wght.ttf
 │   └── images
+│       ├── icons
+│       │   └── home-empty.svg
 │       └── splash.svg
 ├── check-ts.cmd
 ├── dev.cmd
 ├── eslint.config.js
 ├── expo-env.d.ts
+├── metro.config.cjs
 ├── package-lock.json
 ├── package.json
 ├── print_project_tree.py
@@ -62,27 +65,9 @@ Tree view of: D:\D-Documents\Code_VCN\Money_Flow_Manager\moneyflow-manager
 │   │   │   └── repository
 │   │   │       ├── account-settings.repo.ts
 │   │   │       ├── account.repo.ts
-│   │   │       ├── app-settings.repo.ts
-│   │   │       └── schema-version.repo.ts
+│   │   │       └── app-settings.repo.ts
 │   │   └── sql
-│   │       ├── indexes
-│   │       │   ├── account_settings_indexes.sql
-│   │       │   ├── categories_indexes.sql
-│   │       │   └── transactions_indexes.sql
-│   │       ├── sql-loader.ts
-│   │       ├── tables
-│   │       │   ├── account_settings.sql
-│   │       │   ├── accounts.sql
-│   │       │   ├── app_settings.sql
-│   │       │   ├── categories.sql
-│   │       │   ├── schema_versions.sql
-│   │       │   └── transactions.sql
-│   │       └── triggers
-│   │           ├── account_settings_triggers.sql
-│   │           ├── accounts_triggers.sql
-│   │           ├── app_settings_triggers.sql
-│   │           ├── categories_triggers.sql
-│   │           └── transactions_triggers.sql
+│   │       └── sql-commands.ts
 │   ├── constants
 │   │   ├── formats.ts
 │   │   └── messages.ts
@@ -104,7 +89,6 @@ Tree view of: D:\D-Documents\Code_VCN\Money_Flow_Manager\moneyflow-manager
 │           │   ├── account.type.ts
 │           │   ├── app-settings.type.ts
 │           │   ├── category.type.ts
-│           │   ├── schema-version.type.ts
 │           │   └── transaction.type.ts
 │           └── theme.type.ts
 └── tsconfig.json

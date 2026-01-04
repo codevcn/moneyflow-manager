@@ -1,10 +1,13 @@
 import { useTheme } from "@/hooks/use-theme"
 import { TAppTheme } from "@/utils/types/theme.type"
+import { useState } from "react"
 import { StyleSheet, Text, TextInput, TextInputProps, View } from "react-native"
 
-type TTextFieldProps = TextInputProps & {
+type TAmountInputProps = Omit<TextInputProps, "value" | "onChangeText"> & {
   label?: string
   error?: string
+  value: string
+  onChangeValue: (value: string) => void
 }
 
 function createStyles(theme: TAppTheme) {
@@ -21,7 +24,8 @@ function createStyles(theme: TAppTheme) {
     },
     input: {
       fontFamily: "Inter",
-      fontSize: theme.fontSize.lg,
+      fontSize: theme.fontSize.xl,
+      fontWeight: theme.fontWeight.semibold,
       color: theme.colors.text,
       backgroundColor: theme.colors.background,
       borderWidth: 2,
@@ -43,9 +47,35 @@ function createStyles(theme: TAppTheme) {
   })
 }
 
-export function TextField({ label, error, style, ...props }: TTextFieldProps) {
+/**
+ * Format number với dấu phẩy phân cách nghìn
+ */
+function formatNumber(value: string): string {
+  const cleaned = value.replace(/[^0-9.]/g, "")
+  const parts = cleaned.split(".")
+  const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+  const decimalPart = parts[1] !== undefined ? `.${parts[1]}` : ""
+  return integerPart + decimalPart
+}
+
+/**
+ * Parse number từ format string
+ */
+function parseNumber(formatted: string): string {
+  return formatted.replace(/,/g, "")
+}
+
+export function AmountInput({ label, error, value, onChangeValue, style, ...props }: TAmountInputProps) {
   const theme = useTheme()
   const styles = createStyles(theme)
+  const [displayValue, setDisplayValue] = useState(formatNumber(value))
+
+  const handleChangeText = (text: string) => {
+    const parsed = parseNumber(text)
+    const formatted = formatNumber(parsed)
+    setDisplayValue(formatted)
+    onChangeValue(parsed)
+  }
 
   return (
     <View style={styles.container}>
@@ -53,6 +83,9 @@ export function TextField({ label, error, style, ...props }: TTextFieldProps) {
       <TextInput
         style={[styles.input, error && styles.inputError, style]}
         placeholderTextColor={theme.colors.textMuted}
+        value={displayValue}
+        onChangeText={handleChangeText}
+        keyboardType="decimal-pad"
         {...props}
       />
       {error && <Text style={styles.error}>{error}</Text>}

@@ -1,11 +1,15 @@
 export const palette = {
   slate900: "#2A3469",
   slate600: "#475569",
+  slate400: "#90a1b9",
+  slate300: "#cad5e2",
   slate200: "#e2e8f0",
+  slate100: "#f1f5f9",
   slate50: "#f8fafc",
   white: "#ffffff",
   primaryBlue: "#32C5F1",
   green600: "#16a34a",
   red600: "#dc2626",
+  red400: "#ff6467",
   black: "#000000",
 }

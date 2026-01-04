@@ -1,4 +1,5 @@
-import { ChartIcon, ListIcon } from "@/components/Icons"
+import ChartIcon from "@/../assets/images/icons/chart-icon.svg"
+import MoneyFlowIcon from "@/../assets/images/icons/money-flow-icon.svg"
 import { useTheme } from "@/hooks/use-theme"
 import { Tabs } from "expo-router"
 
@@ -11,7 +12,7 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         headerStyle: {
           backgroundColor: theme.colors.surface,
         },
@@ -24,15 +25,18 @@ export default function TabsLayout() {
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.border,
           borderTopWidth: 1,
-          height: 60,
-          paddingBottom: 8,
+          elevation: 0,
+          height: 70,
           paddingTop: 8,
+          paddingBottom: 8,
+          borderBottomWidth: 0,
         },
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textMuted,
         tabBarLabelStyle: {
-          fontSize: theme.fontSize.sm,
-          fontWeight: theme.fontWeight.medium,
+          fontSize: theme.fontSize.md,
+          fontWeight: theme.fontWeight.bold,
+          marginTop: 2,
         },
       }}
     >
@@ -40,14 +44,14 @@ export default function TabsLayout() {
         name="money-flow"
         options={{
           title: "Dòng tiền",
-          tabBarIcon: ({ color, size }) => <ListIcon size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <MoneyFlowIcon width={size + 5} height={size + 5} color={color} />,
         }}
       />
       <Tabs.Screen
         name="statistics"
         options={{
           title: "Thống kê",
-          tabBarIcon: ({ color, size }) => <ChartIcon size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <ChartIcon width={size + 5} height={size + 5} color={color} />,
         }}
       />
     </Tabs>

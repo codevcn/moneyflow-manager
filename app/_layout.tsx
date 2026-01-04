@@ -3,6 +3,7 @@ import { useTheme } from "@/hooks/use-theme"
 import { useFonts } from "expo-font"
 import { SplashScreen, Stack } from "expo-router"
 import { useEffect } from "react"
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context"
 
 SplashScreen.preventAutoHideAsync()
 
@@ -16,6 +17,7 @@ export default function RootLayout() {
     Inter: require("../assets/fonts/Inter/Inter-VariableFont_opsz,wght.ttf"),
     "Inter-Italic": require("../assets/fonts/Inter/Inter-Italic-VariableFont_opsz,wght.ttf"),
   })
+  const insets = useSafeAreaInsets()
 
   useEffect(() => {
     if (error) {
@@ -48,13 +50,17 @@ export default function RootLayout() {
   if (!loaded) return null
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: {
-          backgroundColor: theme.colors.background,
-        },
-      }}
-    />
+    <SafeAreaProvider>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: {
+            backgroundColor: theme.colors.background,
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom,
+          },
+        }}
+      />
+    </SafeAreaProvider>
   )
 }

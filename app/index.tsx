@@ -19,7 +19,7 @@ export default function Index() {
     try {
       const accountAdapter = new AccountRepository()
       const count = await accountAdapter.count()
-      
+
       if (count > 0) {
         router.replace("/(tabs)/money-flow" as any)
       } else {

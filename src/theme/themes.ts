@@ -1,17 +1,18 @@
 import { TAppTheme } from "../utils/types/theme.type"
+import { palette } from "./colors"
 import { tokens } from "./tokens"
 
 export const lightTheme: TAppTheme = {
   mode: "light",
   colors: {
-    background: "#ffffff",
-    surface: "#f8fafc",
-    text: "#0f172a",
-    textMuted: "#475569",
-    border: "#e2e8f0",
-    primary: "#2563eb",
-    success: "#16a34a",
-    danger: "#dc2626",
+    background: palette.white,
+    surface: palette.slate100,
+    text: palette.slate900,
+    textMuted: palette.slate600,
+    border: palette.slate200,
+    primary: palette.primaryBlue,
+    success: palette.green600,
+    danger: palette.red400,
   },
   ...tokens,
 }
@@ -19,14 +20,14 @@ export const lightTheme: TAppTheme = {
 export const darkTheme: TAppTheme = {
   mode: "dark",
   colors: {
-    background: "#0b1220",
-    surface: "#0f172a",
-    text: "#f8fafc",
-    textMuted: "#94a3b8",
-    border: "#1f2a44",
-    primary: "#60a5fa",
-    success: "#34d399",
-    danger: "#fb7185",
+    background: palette.black,
+    surface: palette.slate900,
+    text: palette.white,
+    textMuted: palette.slate200,
+    border: palette.slate600,
+    primary: palette.primaryBlue,
+    success: palette.green600,
+    danger: palette.red600,
   },
   ...tokens,
 }
