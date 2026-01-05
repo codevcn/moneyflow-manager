@@ -1,15 +1,18 @@
 import { DatabaseManager } from "@/configs/db/db-manager"
 import { getCurrentTimestamp } from "@/utils/formatters"
 import { TTransaction, TTransactionInput, TTransactionUpdate } from "@/utils/types/db/transaction.type"
+import { and, count, desc, eq, gte, lte } from "drizzle-orm"
+import { transactions } from "../db-schema"
 
 /**
  * Transaction Entity Adapter
  */
 export class TransactionRepository {
-  private readonly tableName = "transactions"
   private dbManager: DatabaseManager
+  private schema: typeof transactions
 
   constructor() {
+    this.schema = transactions
     this.dbManager = DatabaseManager.getInstance()
   }
 
@@ -17,115 +20,106 @@ export class TransactionRepository {
    * Tạo transaction mới
    */
   async create(input: TTransactionInput): Promise<TTransaction> {
+    const dbClient = await this.dbManager.getDBClient()
     const timestamp = getCurrentTimestamp()
-    const sql = `
-      INSERT INTO ${this.tableName} (
-        account_id, category_id, type, amount, description,
-        transaction_date, transaction_time, created_at, updated_at
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `
-    const result = await this.dbManager.executeQuery(sql, [
-      input.account_id,
-      input.category_id || null,
-      input.type,
-      input.amount,
-      input.description || null,
-      input.transaction_date,
-      input.transaction_time,
-      timestamp,
-      timestamp,
-    ])
-
-    const insertId = (result as any).lastInsertRowid || (result as any).insertId
-    const transaction = await this.getById(insertId)
-
-    if (!transaction) {
-      throw new Error("Failed to create transaction")
-    }
-
-    return transaction
+    const result = await dbClient
+      .insert(this.schema)
+      .values({
+        account_id: input.account_id,
+        category_id: input.category_id || null,
+        type: input.type,
+        amount: input.amount,
+        description: input.description || null,
+        transaction_date: input.transaction_date,
+        transaction_time: input.transaction_time,
+        created_at: timestamp,
+        updated_at: timestamp,
+      })
+      .returning()
+    return result[0] as TTransaction
   }
 
   /**
    * Lấy transaction theo ID
    */
   async getById(id: number): Promise<TTransaction | null> {
-    const sql = `SELECT * FROM ${this.tableName} WHERE id = ?`
-    return await this.dbManager.getFirst<TTransaction>(sql, [id])
+    const dbClient = await this.dbManager.getDBClient()
+    const result = await dbClient
+      .select()
+      .from(this.schema)
+      .where(eq(this.schema.id, id))
+      .limit(1)
+    return (result[0] as TTransaction) || null
   }
 
   /**
    * Lấy tất cả transactions của account
    */
   async getByAccountId(accountId: number): Promise<TTransaction[]> {
-    const sql = `
-      SELECT * FROM ${this.tableName}
-      WHERE account_id = ?
-      ORDER BY transaction_date DESC, transaction_time DESC
-    `
-    return await this.dbManager.getAll<TTransaction>(sql, [accountId])
+    const dbClient = await this.dbManager.getDBClient()
+    const result = await dbClient
+      .select()
+      .from(this.schema)
+      .where(eq(this.schema.account_id, accountId))
+      .orderBy(desc(this.schema.transaction_date), desc(this.schema.transaction_time))
+    return result as TTransaction[]
   }
 
   /**
    * Lấy transactions theo ngày
    */
   async getByDate(accountId: number, startDate: number, endDate: number): Promise<TTransaction[]> {
-    const sql = `
-      SELECT * FROM ${this.tableName}
-      WHERE account_id = ? AND transaction_date >= ? AND transaction_date <= ?
-      ORDER BY transaction_date DESC, transaction_time DESC
-    `
-    return await this.dbManager.getAll<TTransaction>(sql, [accountId, startDate, endDate])
+    const dbClient = await this.dbManager.getDBClient()
+    const result = await dbClient
+      .select()
+      .from(this.schema)
+      .where(and(
+        eq(this.schema.account_id, accountId),
+        gte(this.schema.transaction_date, startDate),
+        lte(this.schema.transaction_date, endDate)
+      ))
+      .orderBy(desc(this.schema.transaction_date), desc(this.schema.transaction_time))
+    return result as TTransaction[]
   }
 
   /**
    * Cập nhật transaction
    */
   async update(input: TTransactionUpdate): Promise<TTransaction | null> {
-    const updates: string[] = []
-    const params: any[] = []
+    const dbClient = await this.dbManager.getDBClient()
+
+    const updateData: any = {
+      updated_at: getCurrentTimestamp(),
+    }
 
     if (input.category_id !== undefined) {
-      updates.push("category_id = ?")
-      params.push(input.category_id)
+      updateData.category_id = input.category_id
     }
 
     if (input.type !== undefined) {
-      updates.push("type = ?")
-      params.push(input.type)
+      updateData.type = input.type
     }
 
     if (input.amount !== undefined) {
-      updates.push("amount = ?")
-      params.push(input.amount)
+      updateData.amount = input.amount
     }
 
     if (input.description !== undefined) {
-      updates.push("description = ?")
-      params.push(input.description)
+      updateData.description = input.description
     }
 
     if (input.transaction_date !== undefined) {
-      updates.push("transaction_date = ?")
-      params.push(input.transaction_date)
+      updateData.transaction_date = input.transaction_date
     }
 
     if (input.transaction_time !== undefined) {
-      updates.push("transaction_time = ?")
-      params.push(input.transaction_time)
+      updateData.transaction_time = input.transaction_time
     }
 
-    if (updates.length === 0) {
-      return this.getById(input.id)
-    }
-
-    updates.push("updated_at = ?")
-    params.push(getCurrentTimestamp())
-    params.push(input.id)
-
-    const sql = `UPDATE ${this.tableName} SET ${updates.join(", ")} WHERE id = ?`
-    await this.dbManager.executeQuery(sql, params)
+    await dbClient
+      .update(this.schema)
+      .set(updateData)
+      .where(eq(this.schema.id, input.id))
 
     return this.getById(input.id)
   }
@@ -134,16 +128,21 @@ export class TransactionRepository {
    * Xóa transaction
    */
   async delete(id: number): Promise<void> {
-    const sql = `DELETE FROM ${this.tableName} WHERE id = ?`
-    await this.dbManager.executeQuery(sql, [id])
+    const dbClient = await this.dbManager.getDBClient()
+    await dbClient
+      .delete(this.schema)
+      .where(eq(this.schema.id, id))
   }
 
   /**
    * Đếm số lượng transactions của account
    */
   async countByAccountId(accountId: number): Promise<number> {
-    const sql = `SELECT COUNT(*) as count FROM ${this.tableName} WHERE account_id = ?`
-    const result = await this.dbManager.getFirst<{ count: number }>(sql, [accountId])
-    return result?.count || 0
+    const dbClient = await this.dbManager.getDBClient()
+    const result = await dbClient
+      .select({ count: count() })
+      .from(this.schema)
+      .where(eq(this.schema.account_id, accountId))
+    return result[0]?.count || 0
   }
 }

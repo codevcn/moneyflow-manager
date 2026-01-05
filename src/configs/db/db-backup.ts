@@ -1,6 +1,7 @@
+import * as FileSystem from "expo-file-system/legacy"
 import { DatabaseManager } from "./db-manager"
 
-type BackupData = {
+type TBackupData = {
   version: string
   exportDate: string
   data: {
@@ -18,6 +19,7 @@ type BackupData = {
 export class DatabaseBackup {
   private dbManager: DatabaseManager
   private static readonly VERSION = "1.0.0"
+  public static localServerEndpoint = "http://192.168.2.6:8000/db-export/"
 
   constructor() {
     this.dbManager = DatabaseManager.getInstance()
@@ -34,7 +36,7 @@ export class DatabaseBackup {
       const accountSettings = await this.dbManager.getAll("SELECT * FROM account_settings")
       const appSettings = await this.dbManager.getFirst("SELECT * FROM app_settings WHERE id = 1")
 
-      const exportData: BackupData = {
+      const exportData: TBackupData = {
         version: DatabaseBackup.VERSION,
         exportDate: new Date().toISOString(),
         data: {
@@ -58,7 +60,7 @@ export class DatabaseBackup {
    */
   public async importFromJSON(jsonString: string): Promise<void> {
     try {
-      const importData: BackupData = JSON.parse(jsonString)
+      const importData: TBackupData = JSON.parse(jsonString)
       this.validateImportData(importData)
 
       await this.dbManager.executeQuery("BEGIN TRANSACTION;")
@@ -202,5 +204,45 @@ export class DatabaseBackup {
         appSettings.updated_at,
       ]
     )
+  }
+
+  /**
+   * Export file .db vật lý để debug trên máy tính
+   * @param dbName Tên file database (mặc định là moneyflow.db)
+   */
+  public static async exportDBFileToLocalServer(): Promise<void> {
+    const dbDir = FileSystem.documentDirectory + "SQLite/"
+    const dbUri = dbDir + DatabaseManager.getDBName()
+
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(dbUri)
+      if (!fileInfo.exists) {
+        console.warn(`>>> [Debug] Database file not found at: ${dbUri}`)
+        throw new Error("Database file not found")
+      }
+
+      console.log(`>>> [Debug] Uploading database file from: ${dbUri}`)
+      console.log(`>>> [Debug] File size: ${fileInfo.size} bytes`)
+
+      const uploadResult = await FileSystem.uploadAsync(DatabaseBackup.localServerEndpoint, dbUri, {
+        httpMethod: "POST",
+        uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+        fieldName: "file",
+        mimeType: "application/octet-stream",
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+
+      if (uploadResult.status === 200) {
+        console.log(`>>> [Debug] Database file uploaded successfully: ${uploadResult.body}`)
+      } else {
+        console.error(`>>> [Debug] Upload failed with status: ${uploadResult.status}`)
+        throw new Error(`Upload failed: ${uploadResult.status}`)
+      }
+    } catch (error) {
+      console.error(">>> [Debug] Error exporting database file:", error)
+      throw error
+    }
   }
 }

@@ -2,15 +2,18 @@ import { DatabaseManager } from "@/configs/db/db-manager"
 import { getCurrentTimestamp } from "@/utils/formatters"
 import { TCategory, TCategoryInput, TCategoryUpdate } from "@/utils/types/db/category.type"
 import { TTransactionType } from "@/utils/types/db/transaction.type"
+import { and, count, eq } from "drizzle-orm"
+import { categories } from "../db-schema"
 
 /**
  * Category Entity Adapter
  */
 export class CategoryRepository {
-  private readonly tableName = "categories"
   private dbManager: DatabaseManager
+  private schema: typeof categories
 
   constructor() {
+    this.schema = categories
     this.dbManager = DatabaseManager.getInstance()
   }
 
@@ -18,83 +21,81 @@ export class CategoryRepository {
    * Tạo category mới
    */
   async create(input: TCategoryInput): Promise<TCategory> {
+    const dbClient = await this.dbManager.getDBClient()
     const timestamp = getCurrentTimestamp()
-    const sql = `
-      INSERT INTO ${this.tableName} (account_id, name, type, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?)
-    `
-    const result = await this.dbManager.executeQuery(sql, [
-      input.account_id,
-      input.name,
-      input.type,
-      timestamp,
-      timestamp,
-    ])
-
-    const insertId = (result as any).lastInsertRowid || (result as any).insertId
-    const category = await this.getById(insertId)
-
-    if (!category) {
-      throw new Error("Failed to create category")
-    }
-
-    return category
+    const result = await dbClient
+      .insert(this.schema)
+      .values({
+        account_id: input.account_id,
+        name: input.name,
+        type: input.type,
+        created_at: timestamp,
+        updated_at: timestamp,
+      })
+      .returning()
+    return result[0] as TCategory
   }
 
   /**
    * Lấy category theo ID
    */
   async getById(id: number): Promise<TCategory | null> {
-    const sql = `SELECT * FROM ${this.tableName} WHERE id = ?`
-    return await this.dbManager.getFirst<TCategory>(sql, [id])
+    const dbClient = await this.dbManager.getDBClient()
+    const result = await dbClient
+      .select()
+      .from(this.schema)
+      .where(eq(this.schema.id, id))
+      .limit(1)
+    return (result[0] as TCategory) || null
   }
 
   /**
    * Lấy tất cả categories của account
    */
   async getByAccountId(accountId: number): Promise<TCategory[]> {
-    const sql = `
-      SELECT * FROM ${this.tableName}
-      WHERE account_id = ?
-      ORDER BY created_at ASC
-    `
-    return await this.dbManager.getAll<TCategory>(sql, [accountId])
+    const dbClient = await this.dbManager.getDBClient()
+    const result = await dbClient
+      .select()
+      .from(this.schema)
+      .where(eq(this.schema.account_id, accountId))
+      .orderBy(this.schema.created_at)
+    return result as TCategory[]
   }
 
   /**
    * Lấy categories theo type
    */
   async getByType(accountId: number, type: TTransactionType): Promise<TCategory[]> {
-    const sql = `
-      SELECT * FROM ${this.tableName}
-      WHERE account_id = ? AND type = ?
-      ORDER BY created_at ASC
-    `
-    return await this.dbManager.getAll<TCategory>(sql, [accountId, type])
+    const dbClient = await this.dbManager.getDBClient()
+    const result = await dbClient
+      .select()
+      .from(this.schema)
+      .where(and(
+        eq(this.schema.account_id, accountId),
+        eq(this.schema.type, type)
+      ))
+      .orderBy(this.schema.created_at)
+    return result as TCategory[]
   }
 
   /**
    * Cập nhật category
    */
   async update(input: TCategoryUpdate): Promise<TCategory | null> {
-    const updates: string[] = []
-    const params: any[] = []
+    const dbClient = await this.dbManager.getDBClient()
+
+    const updateData: any = {
+      updated_at: getCurrentTimestamp(),
+    }
 
     if (input.name !== undefined) {
-      updates.push("name = ?")
-      params.push(input.name)
+      updateData.name = input.name
     }
 
-    if (updates.length === 0) {
-      return this.getById(input.id)
-    }
-
-    updates.push("updated_at = ?")
-    params.push(getCurrentTimestamp())
-    params.push(input.id)
-
-    const sql = `UPDATE ${this.tableName} SET ${updates.join(", ")} WHERE id = ?`
-    await this.dbManager.executeQuery(sql, params)
+    await dbClient
+      .update(this.schema)
+      .set(updateData)
+      .where(eq(this.schema.id, input.id))
 
     return this.getById(input.id)
   }
@@ -103,19 +104,25 @@ export class CategoryRepository {
    * Xóa category
    */
   async delete(id: number): Promise<void> {
-    const sql = `DELETE FROM ${this.tableName} WHERE id = ?`
-    await this.dbManager.executeQuery(sql, [id])
+    const dbClient = await this.dbManager.getDBClient()
+    await dbClient
+      .delete(this.schema)
+      .where(eq(this.schema.id, id))
   }
 
   /**
    * Kiểm tra category đã tồn tại chưa
    */
   async exists(accountId: number, name: string, type: TTransactionType): Promise<boolean> {
-    const sql = `
-      SELECT COUNT(*) as count FROM ${this.tableName}
-      WHERE account_id = ? AND name = ? AND type = ?
-    `
-    const result = await this.dbManager.getFirst<{ count: number }>(sql, [accountId, name, type])
-    return (result?.count || 0) > 0
+    const dbClient = await this.dbManager.getDBClient()
+    const result = await dbClient
+      .select({ count: count() })
+      .from(this.schema)
+      .where(and(
+        eq(this.schema.account_id, accountId),
+        eq(this.schema.name, name),
+        eq(this.schema.type, type)
+      ))
+    return (result[0]?.count || 0) > 0
   }
 }

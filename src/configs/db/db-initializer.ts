@@ -106,7 +106,7 @@ export class DBInitializer {
     await this.dropAllTables()
     await this.dropAllIndexes()
     await this.dropAllTriggers()
-    await this.dbManager.closeConnection()
+    await this.dbManager.closeRawDBConnection()
     console.log(">>> ✅ Database dropped successfully")
   }
 }

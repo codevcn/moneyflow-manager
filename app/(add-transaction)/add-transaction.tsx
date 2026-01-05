@@ -15,7 +15,7 @@ import {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated"
-import { Calculator } from "./calculator"
+import Calculator from "./_calculator"
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window")
 

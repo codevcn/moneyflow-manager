@@ -1,14 +1,18 @@
 import { DatabaseManager } from "@/configs/db/db-manager"
 import { getCurrentTimestamp } from "@/utils/formatters"
 import { TAppSettings, TAppSettingsUpdate } from "@/utils/types/db/app-settings.type"
+import { eq } from "drizzle-orm"
+import { appSettings } from "../db-schema"
 
 /**
  * App Settings Entity Adapter
  */
 export class AppSettingsRepository {
   private dbManager: DatabaseManager
+  private schema: typeof appSettings
 
   constructor() {
+    this.schema = appSettings
     this.dbManager = DatabaseManager.getInstance()
   }
 
@@ -16,41 +20,41 @@ export class AppSettingsRepository {
    * Lấy app settings (luôn có ID = 1)
    */
   async get(): Promise<TAppSettings | null> {
-    const sql = "SELECT * FROM app_settings WHERE id = 1"
-    return await this.dbManager.getFirst<TAppSettings>(sql)
+    const dbClient = await this.dbManager.getDBClient()
+    const result = await dbClient
+      .select()
+      .from(this.schema)
+      .where(eq(this.schema.id, 1))
+      .limit(1)
+    return (result[0] as TAppSettings) || null
   }
 
   /**
    * Cập nhật app settings
    */
   async update(input: TAppSettingsUpdate): Promise<TAppSettings | null> {
-    const updates: string[] = []
-    const params: any[] = []
+    const dbClient = await this.dbManager.getDBClient()
+
+    const updateData: any = {
+      updated_at: getCurrentTimestamp(),
+    }
 
     if (input.language !== undefined) {
-      updates.push("language = ?")
-      params.push(input.language)
+      updateData.language = input.language
     }
 
     if (input.app_password !== undefined) {
-      updates.push("app_password = ?")
-      params.push(input.app_password)
+      updateData.app_password = input.app_password
     }
 
     if (input.is_password_enabled !== undefined) {
-      updates.push("is_password_enabled = ?")
-      params.push(input.is_password_enabled)
+      updateData.is_password_enabled = input.is_password_enabled
     }
 
-    if (updates.length === 0) {
-      return this.get()
-    }
-
-    updates.push("updated_at = ?")
-    params.push(getCurrentTimestamp())
-
-    const sql = `UPDATE app_settings SET ${updates.join(", ")} WHERE id = 1`
-    await this.dbManager.executeQuery(sql, params)
+    await dbClient
+      .update(this.schema)
+      .set(updateData)
+      .where(eq(this.schema.id, 1))
 
     return this.get()
   }

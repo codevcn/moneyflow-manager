@@ -1,3 +1,4 @@
+import { DatabaseBackup } from "@/configs/db/db-backup"
 import { DBInitializer } from "@/configs/db/db-initializer"
 import { useTheme } from "@/hooks/use-theme"
 import { useFonts } from "expo-font"
@@ -36,7 +37,10 @@ export default function RootLayout() {
       try {
         // Try to connect
         const dbInitializer = new DBInitializer()
-        await dbInitializer.initialize()
+        await dbInitializer.initialize() // đã khởi tạo rawDB bên trong
+
+        console.log(">>> run this")
+        await DatabaseBackup.exportDBFileToLocalServer()
 
         console.log(">>> [init] Inited db")
       } catch (err) {

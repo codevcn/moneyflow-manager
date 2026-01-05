@@ -6,7 +6,7 @@ type TCalculatorProps = {
   onResult: (value: string) => void
 }
 
-export const Calculator = ({ onResult }: TCalculatorProps) => {
+export default function Calculator({ onResult }: TCalculatorProps) {
   const theme = useTheme()
   const [display, setDisplay] = useState("0")
   const [currentValue, setCurrentValue] = useState("")
@@ -50,7 +50,7 @@ export const Calculator = ({ onResult }: TCalculatorProps) => {
         case "-":
           result = prev - curr
           break
-        case "×":
+        case "x":
           result = prev * curr
           break
         case "÷":

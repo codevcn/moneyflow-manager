@@ -1,6 +1,6 @@
 import MoneyFlowIcon from "@/../assets/images/icons/money-flow-icon.svg"
-import { Button } from "@/components/Button"
-import { TextField } from "@/components/TextField"
+import { Button } from "@/components/materials/Button"
+import { TextField } from "@/components/materials/TextField"
 import { AccountSettingsRepository } from "@/configs/db/repository/account-settings.repo"
 import { AccountRepository } from "@/configs/db/repository/account.repo"
 import { MESSAGES } from "@/constants/messages"

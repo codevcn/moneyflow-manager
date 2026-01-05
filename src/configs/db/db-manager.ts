@@ -1,5 +1,8 @@
+import { drizzle } from "drizzle-orm/expo-sqlite"
 import * as SQLite from "expo-sqlite"
 import { initIndexes, initTables, initTriggers } from "../sql/sql-commands"
+
+type TDBClient = ReturnType<typeof drizzle>
 
 /**
  * Singleton class quản lý database connection
@@ -7,9 +10,14 @@ import { initIndexes, initTables, initTriggers } from "../sql/sql-commands"
 export class DatabaseManager {
   private static instance: DatabaseManager
   private static readonly DB_NAME = "moneyflow.db"
-  private db: SQLite.SQLiteDatabase | null = null
+  private dbClient: TDBClient | null = null
+  private rawDB: SQLite.SQLiteDatabase | null = null
 
-  private constructor() {}
+  constructor() {}
+
+  public static getDBName(): string {
+    return DatabaseManager.DB_NAME
+  }
 
   public getAllTableSQLCommands(): string[] {
     return Object.values(initTables)
@@ -27,6 +35,10 @@ export class DatabaseManager {
     return Object.keys(initTables)
   }
 
+  public getRawDbInstance(): SQLite.SQLiteDatabase | null {
+    return this.rawDB
+  }
+
   /**
    * Get singleton instance
    */
@@ -37,38 +49,38 @@ export class DatabaseManager {
     return DatabaseManager.instance
   }
 
-  /**
-   * Mở kết nối database
-   */
-  public async getConnection(): Promise<SQLite.SQLiteDatabase> {
-    if (!this.db) {
+  private async initRawDBConnection(): Promise<SQLite.SQLiteDatabase> {
+    if (!this.rawDB) {
       try {
-        this.db = await SQLite.openDatabaseAsync(DatabaseManager.DB_NAME)
-        await this.enableForeignKeys()
+        this.rawDB = await SQLite.openDatabaseAsync(DatabaseManager.DB_NAME)
       } catch (error) {
         console.error("Error opening database:", error)
         throw error
       }
     }
-    return this.db
+    return this.rawDB
   }
 
   /**
-   * Enable foreign keys constraint
+   * 2. Lấy Drizzle Client (Sử dụng lại kết nối rawDB)
    */
-  private async enableForeignKeys(): Promise<void> {
-    if (this.db) {
-      await this.db.execAsync("PRAGMA foreign_keys = ON;")
+  public async getDBClient(): Promise<TDBClient> {
+    if (!this.dbClient) {
+      // Đảm bảo rawDB đã có trước
+      const sqliteDb = await this.initRawDBConnection()
+      // Truyền rawDB vào drizzle
+      this.dbClient = drizzle(sqliteDb)
     }
+    return this.dbClient
   }
 
   /**
    * Đóng kết nối database
    */
-  public async closeConnection(): Promise<void> {
-    if (this.db) {
-      await this.db.closeAsync()
-      this.db = null
+  public async closeRawDBConnection(): Promise<void> {
+    if (this.rawDB) {
+      await this.rawDB.closeAsync()
+      this.rawDB = null
     }
   }
 
@@ -76,32 +88,32 @@ export class DatabaseManager {
    * Execute raw SQL query
    */
   public async executeQuery(sql: string, params?: any[]): Promise<any> {
-    const db = await this.getConnection()
+    const rawDB = await this.initRawDBConnection()
     if (params) {
-      return await db.runAsync(sql, params)
+      return await rawDB.runAsync(sql, params)
     }
-    return await db.execAsync(sql)
+    return await rawDB.execAsync(sql)
   }
 
   /**
    * Get first result
    */
   public async getFirst<T>(sql: string, params?: any[]): Promise<T | null> {
-    const db = await this.getConnection()
+    const rawDB = await this.initRawDBConnection()
     if (params) {
-      return await db.getFirstAsync<T>(sql, params)
+      return await rawDB.getFirstAsync<T>(sql, params)
     }
-    return await db.getFirstAsync<T>(sql)
+    return await rawDB.getFirstAsync<T>(sql)
   }
 
   /**
    * Get all results
    */
   public async getAll<T>(sql: string, params?: any[]): Promise<T[]> {
-    const db = await this.getConnection()
+    const rawDB = await this.initRawDBConnection()
     if (params) {
-      return await db.getAllAsync<T>(sql, params)
+      return await rawDB.getAllAsync<T>(sql, params)
     }
-    return await db.getAllAsync<T>(sql)
+    return await rawDB.getAllAsync<T>(sql)
   }
 }

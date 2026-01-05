@@ -1,5 +1,6 @@
 import EmptyStateIcon from "@/../assets/images/icons/empty-state.svg"
 import { AddTransactionButton } from "@/components/ui/AddTransactionButton"
+import { DatabaseBackup } from "@/configs/db/db-backup"
 import { AccountRepository } from "@/configs/db/repository/account.repo"
 import { TransactionRepository } from "@/configs/db/repository/transaction.repo"
 import { useTheme } from "@/hooks/use-theme"
@@ -26,6 +27,7 @@ export default function MoneyFlowScreen() {
 
   useEffect(() => {
     loadAccount()
+    exportDBToServer()
   }, [])
 
   useFocusEffect(
@@ -35,6 +37,16 @@ export default function MoneyFlowScreen() {
       }
     }, [currentAccount])
   )
+
+  const exportDBToServer = async () => {
+    console.log(">>> Exporting database to local server...")
+    try {
+      await DatabaseBackup.exportDBFileToLocalServer()
+      console.log(">>> Database exported to local server successfully")
+    } catch (error) {
+      console.error(">>> Error exporting database to local server:", error)
+    }
+  }
 
   const loadAccount = async () => {
     try {

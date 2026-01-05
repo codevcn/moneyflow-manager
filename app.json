@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "moneyflow-manager",
-    "slug": "moneyflow-manager",
+    "name": "moneyflow",
+    "slug": "moneyflow",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "moneyflowmanager",
+    "scheme": "moneyflow",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -24,7 +24,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.codevcn.moneyflow"
     },
     "web": {
       "output": "static",
@@ -52,9 +53,11 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "assetBundlePatterns": [
-      "**/*",
-      "src/configs/sql/**/*.sql"
-    ]
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "6ce2e7eb-b1a9-4aef-a9e6-eafa64e0c837"
+      }
+    }
   }
 }

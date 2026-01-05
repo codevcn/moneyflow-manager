@@ -6,15 +6,18 @@ import {
   TAccountSettingsInput,
   TAccountSettingsUpdate,
 } from "@/utils/types/db/account-settings.type"
+import { eq } from "drizzle-orm"
+import { accountSettings } from "../db-schema"
 
 /**
  * Account Settings Entity Adapter
  */
 export class AccountSettingsRepository {
-  private readonly tableName = "account_settings"
   private dbManager: DatabaseManager
+  private schema: typeof accountSettings
 
   constructor() {
+    this.schema = accountSettings
     this.dbManager = DatabaseManager.getInstance()
   }
 
@@ -22,62 +25,52 @@ export class AccountSettingsRepository {
    * Tạo settings cho account
    */
   async create(input: TAccountSettingsInput): Promise<TAccountSettings> {
-    const timestamp = getCurrentTimestamp()
-    const sql = `
-      INSERT INTO ${this.tableName} (account_id, theme_mode, currency, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?)
-    `
-    await this.dbManager.executeQuery(sql, [
-      input.account_id,
-      input.theme_mode || DEFAULTS.THEME_MODE,
-      input.currency || DEFAULTS.CURRENCY,
-      timestamp,
-      timestamp,
-    ])
-
-    const settings = await this.getByAccountId(input.account_id)
-    if (!settings) {
-      throw new Error("Failed to create account settings")
-    }
-
-    return settings
+    const dbClient = await this.dbManager.getDBClient()
+    const accountSettings = await dbClient
+      .insert(this.schema)
+      .values({
+        account_id: input.account_id,
+        theme_mode: input.theme_mode || DEFAULTS.THEME_MODE,
+        currency: input.currency || DEFAULTS.CURRENCY,
+        created_at: getCurrentTimestamp(),
+        updated_at: getCurrentTimestamp(),
+      })
+      .returning()
+    return accountSettings[0] as TAccountSettings
   }
 
   /**
    * Lấy settings theo account ID
    */
   async getByAccountId(accountId: number): Promise<TAccountSettings | null> {
-    const sql = `SELECT * FROM ${this.tableName} WHERE account_id = ?`
-    return await this.dbManager.getFirst<TAccountSettings>(sql, [accountId])
+    const dbClient = await this.dbManager.getDBClient()
+    const result = await dbClient
+      .select()
+      .from(this.schema)
+      .where(eq(this.schema.account_id, accountId))
+      .limit(1)
+    return (result[0] as TAccountSettings) || null
   }
 
   /**
    * Cập nhật settings
    */
   async update(input: TAccountSettingsUpdate): Promise<TAccountSettings | null> {
-    const updates: string[] = []
-    const params: any[] = []
+    const dbClient = await this.dbManager.getDBClient()
+
+    const updateData: any = {
+      updated_at: getCurrentTimestamp(),
+    }
 
     if (input.theme_mode !== undefined) {
-      updates.push("theme_mode = ?")
-      params.push(input.theme_mode)
+      updateData.theme_mode = input.theme_mode
     }
 
     if (input.currency !== undefined) {
-      updates.push("currency = ?")
-      params.push(input.currency)
+      updateData.currency = input.currency
     }
 
-    if (updates.length === 0) {
-      return this.getByAccountId(input.account_id)
-    }
-
-    updates.push("updated_at = ?")
-    params.push(getCurrentTimestamp())
-    params.push(input.account_id)
-
-    const sql = `UPDATE ${this.tableName} SET ${updates.join(", ")} WHERE account_id = ?`
-    await this.dbManager.executeQuery(sql, params)
+    await dbClient.update(this.schema).set(updateData).where(eq(this.schema.account_id, input.account_id))
 
     return this.getByAccountId(input.account_id)
   }
@@ -86,7 +79,7 @@ export class AccountSettingsRepository {
    * Xóa settings (cascade khi xóa account)
    */
   async delete(accountId: number): Promise<void> {
-    const sql = `DELETE FROM ${this.tableName} WHERE account_id = ?`
-    await this.dbManager.executeQuery(sql, [accountId])
+    const dbClient = await this.dbManager.getDBClient()
+    await dbClient.delete(this.schema).where(eq(this.schema.account_id, accountId))
   }
 }
