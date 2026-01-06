@@ -33,7 +33,6 @@ export class AccountSettingsRepository {
         theme_mode: input.theme_mode || DEFAULTS.THEME_MODE,
         currency: input.currency || DEFAULTS.CURRENCY,
         created_at: getCurrentTimestamp(),
-        updated_at: getCurrentTimestamp(),
       })
       .returning()
     return accountSettings[0] as TAccountSettings

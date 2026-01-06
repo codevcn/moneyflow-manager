@@ -9,6 +9,11 @@ export const accounts = sqliteTable("accounts", {
   updated_at: integer("updated_at").notNull(),
 })
 
+export const activeAccount = sqliteTable("active_account", {
+  account_id: integer("account_id").primaryKey({ autoIncrement: false }),
+  updated_at: integer("updated_at").notNull(),
+})
+
 // Định nghĩa bảng 'account_settings'
 export const accountSettings = sqliteTable("account_settings", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -16,7 +21,6 @@ export const accountSettings = sqliteTable("account_settings", {
   theme_mode: text("theme_mode").notNull(),
   currency: text("currency").notNull(),
   created_at: integer("created_at").notNull(),
-  updated_at: integer("updated_at").notNull(),
 })
 
 // Định nghĩa bảng 'app_settings'
@@ -26,17 +30,14 @@ export const appSettings = sqliteTable("app_settings", {
   app_password: text("app_password"),
   is_password_enabled: integer("is_password_enabled").notNull(),
   created_at: integer("created_at").notNull(),
-  updated_at: integer("updated_at").notNull(),
 })
 
 // Định nghĩa bảng 'categories'
 export const categories = sqliteTable("categories", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  account_id: integer("account_id").notNull(),
   name: text("name").notNull(),
-  type: text("type").notNull(),
+  icon_path: text("icon_path").notNull(),
   created_at: integer("created_at").notNull(),
-  updated_at: integer("updated_at").notNull(),
 })
 
 // Định nghĩa bảng 'transactions'

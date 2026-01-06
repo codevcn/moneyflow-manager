@@ -6,7 +6,6 @@ export type TAppSettings = {
   app_password: string | null
   is_password_enabled: number
   created_at: number
-  updated_at: number
 }
 
 export type TAppSettingsUpdate = {

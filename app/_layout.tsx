@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/Toaster"
 import { DatabaseBackup } from "@/configs/db/db-backup"
 import { DBInitializer } from "@/configs/db/db-initializer"
 import { useTheme } from "@/hooks/use-theme"
@@ -20,35 +21,42 @@ export default function RootLayout() {
   })
   const insets = useSafeAreaInsets()
 
-  useEffect(() => {
+  const logErrorOnUseFonts = () => {
     if (error) {
       console.error(error)
     }
-  }, [error])
+  }
 
-  useEffect(() => {
+  const initDatabase = async () => {
+    try {
+      // Try to connect
+      const dbInitializer = new DBInitializer()
+      await dbInitializer.initialize() // đã khởi tạo rawDB bên trong
+
+      console.log(">>> run this")
+      await DatabaseBackup.exportDBFileToLocalServer()
+
+      console.log(">>> [init] Inited db")
+    } catch (err) {
+      console.error(">>> [init] Database init failed:", err)
+    }
+  }
+
+  const hideSplashScreen = async () => {
     if (loaded) {
       SplashScreen.hideAsync()
     }
+  }
+
+  useEffect(logErrorOnUseFonts, [error])
+
+  useEffect(() => {
+    hideSplashScreen()
   }, [loaded])
 
   useEffect(() => {
-    const initDatabase = async () => {
-      try {
-        // Try to connect
-        const dbInitializer = new DBInitializer()
-        await dbInitializer.initialize() // đã khởi tạo rawDB bên trong
-
-        console.log(">>> run this")
-        await DatabaseBackup.exportDBFileToLocalServer()
-
-        console.log(">>> [init] Inited db")
-      } catch (err) {
-        console.error(">>> [init] Database init failed:", err)
-      }
-    }
-
     initDatabase()
+    // doTest()
   }, [])
 
   if (!loaded) return null
@@ -65,6 +73,7 @@ export default function RootLayout() {
           },
         }}
       />
+      <Toaster />
     </SafeAreaProvider>
   )
 }

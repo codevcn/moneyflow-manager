@@ -7,7 +7,6 @@ export type TAccountSettings = {
   theme_mode: TThemeMode
   currency: TCurrency
   created_at: number
-  updated_at: number
 }
 
 export type TAccountSettingsInput = {

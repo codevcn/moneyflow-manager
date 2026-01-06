@@ -235,7 +235,11 @@ export class DatabaseBackup {
       })
 
       if (uploadResult.status === 200) {
-        console.log(`>>> [Debug] Database file uploaded successfully: ${uploadResult.body}`)
+        console.log(
+          `>>> [Debug - ${new Date().toISOString()}] Database file uploaded successfully: ${
+            uploadResult.body
+          }`
+        )
       } else {
         console.error(`>>> [Debug] Upload failed with status: ${uploadResult.status}`)
         throw new Error(`Upload failed: ${uploadResult.status}`)

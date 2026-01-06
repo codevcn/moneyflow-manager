@@ -2,20 +2,17 @@ import CheckIcon from "@/../assets/images/icons/check-icon.svg"
 import { AccountRepository } from "@/configs/db/repository/account.repo"
 import { TransactionRepository } from "@/configs/db/repository/transaction.repo"
 import { MESSAGES } from "@/constants/messages"
-import { useTheme } from "@/hooks/use-theme"
+import { palette } from "@/theme/colors"
 import { getCurrentTimeString, getCurrentTimestamp } from "@/utils/formatters"
+import { ToasterControl } from "@/utils/toaster.control"
 import { TAccount } from "@/utils/types/db/account.type"
 import { TTransactionType } from "@/utils/types/db/transaction.type"
 import { router } from "expo-router"
 import { useEffect, useRef, useState } from "react"
 import { Alert, Dimensions, KeyboardAvoidingView, Pressable, StyleSheet, Text, View } from "react-native"
-import {
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated"
-import Calculator from "./_calculator"
+import { Calculator } from "./_calculator"
+import { Category } from "./_category"
+import { Description } from "./_description"
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window")
 
@@ -34,10 +31,7 @@ type TFormErrors = {
 }
 
 export default function AddTransactionScreen() {
-  const theme = useTheme()
   const scrollViewRef = useRef<any>(null)
-  const scrollX = useSharedValue(0)
-
   const [currentAccount, setCurrentAccount] = useState<TAccount | null>(null)
   const [activeTab, setActiveTab] = useState<TTransactionType>("expense")
   const [loading, setLoading] = useState(false)
@@ -70,32 +64,16 @@ export default function AddTransactionScreen() {
       setCurrentAccount(account)
     } catch (error) {
       console.error("Error loading account:", error)
-      Alert.alert("Lỗi", "Không thể tải thông tin tài khoản")
+      ToasterControl.show("Không thể tải thông tin tài khoản", "error")
       router.back()
     }
   }
-
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollX.value = event.contentOffset.x
-    },
-  })
 
   const handleTabPress = (tab: TTransactionType) => {
     setActiveTab(tab)
     const offsetX = tab === "expense" ? 0 : SCREEN_WIDTH
     scrollViewRef.current?.scrollTo({ x: offsetX, animated: true })
   }
-
-  const indicatorStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        {
-          translateX: withTiming(activeTab === "expense" ? 0 : SCREEN_WIDTH / 2, { duration: 200 }),
-        },
-      ],
-    }
-  })
 
   const validateForm = (form: TFormData): TFormErrors => {
     const errors: TFormErrors = {}
@@ -123,7 +101,7 @@ export default function AddTransactionScreen() {
     }
 
     if (Object.keys(errors).length > 0) {
-      Alert.alert("Lỗi", "Vui lòng kiểm tra lại thông tin")
+      ToasterControl.show("Vui lòng kiểm tra lại thông tin", "error")
       return
     }
 
@@ -144,72 +122,89 @@ export default function AddTransactionScreen() {
       Alert.alert("Thành công", MESSAGES.SUCCESS.TRANSACTION_CREATED, [
         {
           text: "OK",
-          onPress: () => router.back(),
+          onPress: () => router.push("/"),
         },
       ])
     } catch (error) {
       console.error("Error creating transaction:", error)
-      Alert.alert("Lỗi", MESSAGES.ERROR.CREATE_TRANSACTION_FAILED)
+      ToasterControl.show(MESSAGES.ERROR.CREATE_TRANSACTION_FAILED, "error")
     } finally {
       setLoading(false)
     }
   }
 
-  const updateExpenseForm = (field: keyof TFormData, value: any) => {
+  const updateExpenseForm = (field: keyof TFormData, value: string | number) => {
     setExpenseForm({ ...expenseForm, [field]: value })
     setExpenseErrors({ ...expenseErrors, [field]: undefined })
   }
 
-  const updateIncomeForm = (field: keyof TFormData, value: any) => {
+  const updateIncomeForm = (field: keyof TFormData, value: string | number) => {
     setIncomeForm({ ...incomeForm, [field]: value })
     setIncomeErrors({ ...incomeErrors, [field]: undefined })
   }
 
+  const handleUpdateAmount = (value: string) => {
+    if (activeTab === "expense") {
+      updateExpenseForm("amount", value)
+    } else {
+      updateIncomeForm("amount", value)
+    }
+  }
+
+  const handleUpdateDescription = (text: string) => {
+    if (activeTab === "expense") {
+      updateExpenseForm("description", text)
+    } else {
+      updateIncomeForm("description", text)
+    }
+  }
+
+  const handleCategorySelect = (categoryId: number | null) => {
+    if (activeTab === "expense") {
+      updateExpenseForm("categoryId", categoryId || 0)
+    } else {
+      updateIncomeForm("categoryId", categoryId || 0)
+    }
+  }
+
+  const currentForm = activeTab === "expense" ? expenseForm : incomeForm
+  const isExpenseTab = activeTab === "expense"
+  const isIncomeTab = activeTab === "income"
+
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-      behavior="height"
-    >
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: theme.colors.surface,
-            borderBottomColor: theme.colors.border,
-          },
-        ]}
-      >
-        <View style={[styles.tabContainer, { backgroundColor: theme.colors.surface }]}>
+    <KeyboardAvoidingView style={[styles.container]} behavior="height">
+      <View style={[styles.header]}>
+        <View style={[styles.tabContainer]}>
           <Pressable
             style={[
               styles.tab,
-              { backgroundColor: activeTab === "expense" ? theme.colors.danger : "transparent" },
+              {
+                backgroundColor: isExpenseTab ? "#ff4d4f" : palette.slate50,
+                borderTopColor: isExpenseTab ? "#ff4d4f" : palette.slate300,
+                borderLeftColor: isExpenseTab ? "#ff4d4f" : palette.slate300,
+                borderRightColor: isExpenseTab ? "#ff4d4f" : palette.slate300,
+              },
             ]}
             onPress={() => handleTabPress("expense")}
           >
-            {activeTab === "expense" ? <CheckIcon height={24} width={24} color="#fff" /> : null}
-            <Text style={[styles.tabText, { color: activeTab === "expense" ? "#fff" : "#000" }]}>
-              Chi tiêu
-            </Text>
+            {isExpenseTab ? <CheckIcon height={24} width={24} color="#fff" /> : null}
+            <Text style={[styles.tabText, { color: isExpenseTab ? "#fff" : "#000" }]}>Chi tiêu</Text>
           </Pressable>
 
           <Pressable
-            style={[
-              styles.tab,
-              { backgroundColor: activeTab === "income" ? theme.colors.primary : "transparent" },
-            ]}
+            style={[styles.tab, { backgroundColor: isIncomeTab ? palette.mainBlue : palette.slate50 }]}
             onPress={() => handleTabPress("income")}
           >
-            {activeTab === "income" ? <CheckIcon height={24} width={24} color="#fff" /> : null}
-            <Text style={[styles.tabText, { color: activeTab === "income" ? "#fff" : "#000" }]}>
-              Thu nhập
-            </Text>
+            {isIncomeTab ? <CheckIcon height={24} width={24} color="#fff" /> : null}
+            <Text style={[styles.tabText, { color: isIncomeTab ? "#fff" : "#000" }]}>Thu nhập</Text>
           </Pressable>
         </View>
       </View>
 
       <View style={{ flex: 1 }}>
-        <Calculator onResult={() => {}} />
+        <Category selectedCategoryId={currentForm.categoryId} onCategorySelect={handleCategorySelect} />
+        <Description onContentChange={handleUpdateDescription} />
+        <Calculator onCurrentValueChange={handleUpdateAmount} />
       </View>
     </KeyboardAvoidingView>
   )
@@ -218,8 +213,12 @@ export default function AddTransactionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#fff",
   },
-  header: {},
+  header: {
+    backgroundColor: "#fff",
+    borderBottomColor: "#ccc",
+  },
   title: {
     fontFamily: "Inter",
     fontWeight: "700",
@@ -229,8 +228,14 @@ const styles = StyleSheet.create({
   tabContainer: {
     flexDirection: "row",
     position: "relative",
+    backgroundColor: "#fff",
+    gap: 8,
+    paddingHorizontal: 8,
   },
   tab: {
+    borderColor: palette.slate300,
+    borderWidth: 1,
+    borderBottomWidth: 4,
     flex: 1,
     flexDirection: "row",
     justifyContent: "center",
@@ -238,13 +243,13 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
     zIndex: 1,
+    backgroundColor: palette.slate50,
+    borderRadius: 8,
   },
+  expenseTab: {},
   tabText: {
     fontFamily: "Inter",
     fontWeight: "800",
     fontSize: 18,
-  },
-  formContainer: {
-    padding: 16,
   },
 })

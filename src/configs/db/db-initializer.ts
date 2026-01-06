@@ -24,6 +24,7 @@ export class DBInitializer {
    */
   public async initialize(): Promise<void> {
     if (await this.isInitialized()) {
+      await this.dbManager.closeRawDBConnection()
       console.log(">>> ✅ Database schema already initialized")
       return
     }
@@ -31,6 +32,7 @@ export class DBInitializer {
       await this.createTables()
       await this.createIndexes()
       await this.createTriggers()
+      await this.dbManager.closeRawDBConnection()
       console.log(">>> ✅ Database schema initialized successfully")
     } catch (error) {
       console.error(">>> ❌ Error initializing database schema:", error)

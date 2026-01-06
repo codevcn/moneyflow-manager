@@ -1,21 +1,17 @@
-import { TTransactionType } from "./transaction.type"
-
 export type TCategory = {
   id: number
-  account_id: number
   name: string
-  type: TTransactionType
+  icon_path: string
   created_at: number
-  updated_at: number
 }
 
 export type TCategoryInput = {
-  account_id: number
   name: string
-  type: TTransactionType
+  icon_path: string
 }
 
 export type TCategoryUpdate = {
   id: number
   name?: string
+  icon_path?: string
 }

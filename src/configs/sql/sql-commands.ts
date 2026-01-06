@@ -16,7 +16,6 @@ export const initTables = {
       theme_mode TEXT NOT NULL DEFAULT 'light' CHECK(theme_mode IN ('light', 'dark')),
       currency TEXT NOT NULL DEFAULT 'VND',
       created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-      updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
       FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
     );
   `,
@@ -26,20 +25,16 @@ export const initTables = {
       language TEXT NOT NULL DEFAULT 'vi',
       app_password TEXT,
       is_password_enabled INTEGER NOT NULL DEFAULT 0 CHECK(is_password_enabled IN (0, 1)),
-      created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-      updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+      created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
     );
   `,
   categories: `
     CREATE TABLE IF NOT EXISTS categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      account_id INTEGER NOT NULL,
       name TEXT NOT NULL,
-      type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
+      icon_path TEXT NOT NULL,
       created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-      updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-      FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
-      UNIQUE(account_id, name, type)
+      UNIQUE(name)
     );
   `,
   transactions: `
@@ -58,6 +53,13 @@ export const initTables = {
       FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
     );
   `,
+  active_account: `
+    CREATE TABLE IF NOT EXISTS active_account (
+      account_id INTEGER PRIMARY KEY NOT NULL,
+      updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+      FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    );
+  `,
 } as const
 
 export const initIndexes = {
@@ -67,24 +69,12 @@ export const initIndexes = {
     CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(transaction_date DESC);
     CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
   `,
-  categoriesIndexes: `
-    CREATE INDEX IF NOT EXISTS idx_categories_account_id ON categories(account_id);
-    CREATE INDEX IF NOT EXISTS idx_categories_type ON categories(type);
-  `,
   accountSettingsIndexes: `
     CREATE INDEX IF NOT EXISTS idx_account_settings_account_id ON account_settings(account_id);
   `,
 } as const
 
 export const initTriggers = {
-  accountSettingsTriggers: `
-    CREATE TRIGGER IF NOT EXISTS update_account_settings_timestamp
-    AFTER UPDATE ON account_settings
-    FOR EACH ROW
-    BEGIN
-      UPDATE account_settings SET updated_at = strftime('%s', 'now') WHERE id = NEW.id;
-    END;
-  `,
   accountsTriggers: `
     CREATE TRIGGER IF NOT EXISTS update_accounts_timestamp
     AFTER UPDATE ON accounts
@@ -93,28 +83,20 @@ export const initTriggers = {
       UPDATE accounts SET updated_at = strftime('%s', 'now') WHERE id = NEW.id;
     END;
   `,
-  appSettingsTriggers: `
-    CREATE TRIGGER IF NOT EXISTS update_app_settings_timestamp
-    AFTER UPDATE ON app_settings
-    FOR EACH ROW
-    BEGIN
-      UPDATE app_settings SET updated_at = strftime('%s', 'now') WHERE id = NEW.id;
-    END;
-  `,
-  categoriesTriggers: `
-    CREATE TRIGGER IF NOT EXISTS update_categories_timestamp
-    AFTER UPDATE ON categories
-    FOR EACH ROW
-    BEGIN
-      UPDATE categories SET updated_at = strftime('%s', 'now') WHERE id = NEW.id;
-    END;
-  `,
   transactionsTriggers: `
     CREATE TRIGGER IF NOT EXISTS update_transactions_timestamp
     AFTER UPDATE ON transactions
     FOR EACH ROW
     BEGIN
       UPDATE transactions SET updated_at = strftime('%s', 'now') WHERE id = NEW.id;
+    END;
+  `,
+  activeAccountTriggers: `
+    CREATE TRIGGER IF NOT EXISTS update_active_account_timestamp
+    AFTER UPDATE ON active_account
+    FOR EACH ROW
+    BEGIN
+      UPDATE active_account SET updated_at = strftime('%s', 'now') WHERE account_id = NEW.account_id;
     END;
   `,
 }

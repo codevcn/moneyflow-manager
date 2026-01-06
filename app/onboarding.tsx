@@ -3,8 +3,10 @@ import { Button } from "@/components/materials/Button"
 import { TextField } from "@/components/materials/TextField"
 import { AccountSettingsRepository } from "@/configs/db/repository/account-settings.repo"
 import { AccountRepository } from "@/configs/db/repository/account.repo"
+import { ActiveAccountRepository } from "@/configs/db/repository/active-account.repo"
 import { MESSAGES } from "@/constants/messages"
 import { useTheme } from "@/hooks/use-theme"
+import { useAccountStore } from "@/stores/account.store"
 import { router } from "expo-router"
 import { useState } from "react"
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native"
@@ -31,12 +33,17 @@ export default function OnboardingScreen() {
     try {
       const accountRepo = new AccountRepository()
       const settingsRepo = new AccountSettingsRepository()
+      const activeAccountRepo = new ActiveAccountRepository()
 
       // Create account
       const account = await accountRepo.create({
         name: accountName.trim(),
         description: description.trim() || undefined,
       })
+
+      await activeAccountRepo.replaceActiveAccount({ account_id: account.id })
+
+      useAccountStore.getState().setActiveAccount(account)
 
       // Create default settings for account
       await settingsRepo.create({
