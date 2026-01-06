@@ -1,4 +1,6 @@
 import CheckIcon from "@/../assets/images/icons/check-icon.svg"
+import CloseIcon from "@/../assets/images/icons/close-icon.svg"
+import SaveIcon from "@/../assets/images/icons/save-icon.svg"
 import { AccountRepository } from "@/configs/db/repository/account.repo"
 import { TransactionRepository } from "@/configs/db/repository/transaction.repo"
 import { MESSAGES } from "@/constants/messages"
@@ -13,6 +15,7 @@ import { Alert, Dimensions, KeyboardAvoidingView, Pressable, StyleSheet, Text, V
 import { Calculator } from "./_calculator"
 import { Category } from "./_category"
 import { Description } from "./_description"
+import { TransactionDatetime } from "./_transaction-datetime"
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window")
 
@@ -167,6 +170,18 @@ export default function AddTransactionScreen() {
     }
   }
 
+  const handlePickDatetime = (datetime: Date) => {
+    if (activeTab === "expense") {
+      updateExpenseForm("date", datetime.getTime())
+    } else {
+      updateIncomeForm("date", datetime.getTime())
+    }
+  }
+
+  const backToHome = () => {
+    router.push("/")
+  }
+
   const currentForm = activeTab === "expense" ? expenseForm : incomeForm
   const isExpenseTab = activeTab === "expense"
   const isIncomeTab = activeTab === "income"
@@ -201,10 +216,28 @@ export default function AddTransactionScreen() {
         </View>
       </View>
 
-      <View style={{ flex: 1 }}>
+      <View style={{ width: "100%" }}>
         <Category selectedCategoryId={currentForm.categoryId} onCategorySelect={handleCategorySelect} />
         <Description onContentChange={handleUpdateDescription} />
         <Calculator onCurrentValueChange={handleUpdateAmount} />
+        <TransactionDatetime onPickDatetime={handlePickDatetime} />
+      </View>
+
+      <View style={styles.actionsContainer}>
+        <View style={styles.actionWrapper}>
+          <Pressable style={[styles.actionButton, styles.actionButtonClose]}>
+            <CloseIcon width={26} height={26} strokeWidth={2.5} />
+            <Text style={styles.actionButtonText} onPress={backToHome}>
+              Hủy
+            </Text>
+          </Pressable>
+          <Pressable style={[styles.actionButton, styles.actionButtonSave]}>
+            <SaveIcon width={26} height={26} strokeWidth={2.5} color="#fff" />
+            <Text style={[styles.actionButtonText, styles.actionButtonTextSave]} onPress={handleSave}>
+              Lưu giao dịch
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </KeyboardAvoidingView>
   )
@@ -214,6 +247,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    marginTop: 16,
   },
   header: {
     backgroundColor: "#fff",
@@ -240,7 +274,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     gap: 8,
-    paddingVertical: 14,
+    paddingVertical: 10,
     alignItems: "center",
     zIndex: 1,
     backgroundColor: palette.slate50,
@@ -251,5 +285,56 @@ const styles = StyleSheet.create({
     fontFamily: "Inter",
     fontWeight: "800",
     fontSize: 18,
+  },
+  actionsContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 8,
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  actionWrapper: {
+    flex: 1,
+    flexDirection: "row",
+  },
+  actionButton: {
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actionButtonClose: {
+    flex: 0.4,
+    backgroundColor: palette.slate100,
+    borderTopColor: palette.slate400,
+    borderTopWidth: 2,
+    borderLeftColor: palette.slate400,
+    borderLeftWidth: 2,
+    borderBottomColor: palette.slate400,
+    borderBottomWidth: 2,
+    borderTopLeftRadius: 999,
+    borderBottomLeftRadius: 999,
+  },
+  actionButtonSave: {
+    flex: 0.6,
+    backgroundColor: palette.mainBlue,
+    borderTopColor: palette.mainBlue,
+    borderTopWidth: 2,
+    borderRightColor: palette.mainBlue,
+    borderRightWidth: 2,
+    borderBottomColor: palette.mainBlue,
+    borderBottomWidth: 2,
+    borderTopRightRadius: 999,
+    borderBottomRightRadius: 999,
+  },
+  actionButtonText: {
+    fontFamily: "Inter",
+    fontSize: 18,
+    fontWeight: "800",
+    color: palette.slate800,
+  },
+  actionButtonTextSave: {
+    color: "#fff",
   },
 })

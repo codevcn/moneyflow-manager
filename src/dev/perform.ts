@@ -215,13 +215,16 @@ const initCategoryRows = async () => {
     const categoriesData = [
       {
         name: "Ăn uống",
-        icon_path: "food-drinks-icon",
+        icon_path: "images/icons/food-drinks-icon",
       },
       {
         name: "Mua sắm",
-        icon_path: "shopping-icon",
+        icon_path: "images/icons/shopping-icon",
       },
     ]
+
+    await dbManager.executeQuery(`DELETE FROM categories;`)
+    console.log(">>> ✅ Xóa dữ liệu cũ trong bảng categories thành công")
 
     for (const category of categoriesData) {
       await dbManager.executeQuery(

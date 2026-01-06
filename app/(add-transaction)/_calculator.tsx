@@ -34,8 +34,7 @@ const CalculatorButton = ({
           styles.buttonText,
           {
             color: isOperator || isEqual ? "#ffffff" : palette.slate800,
-            fontSize: 24,
-            fontWeight: "600",
+            transform: [{ translateY: label === "*" ? 5 : label === "=" ? -3 : 0 }],
           },
         ]}
       >
@@ -233,14 +232,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: 16,
+    paddingHorizontal: 16,
     paddingRight: 8,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: palette.slate300,
     backgroundColor: palette.slate50,
     marginBottom: 4,
-    height: 70,
+    height: 64,
   },
   displayText: {
     flex: 1,
@@ -276,7 +275,7 @@ const styles = StyleSheet.create({
   },
   keyButton: {
     flex: 1,
-    aspectRatio: 5 / 4,
+    aspectRatio: 5 / 3.6,
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
@@ -285,5 +284,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontFamily: "Inter",
+    fontSize: 30,
+    fontWeight: "600",
   },
 })

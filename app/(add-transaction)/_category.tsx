@@ -2,6 +2,7 @@ import LabelIcon from "@/../assets/images/icons/label-icon.svg"
 import { CategoryList } from "@/components/app-components/category-list/CategoryList"
 import { CategoryRepository } from "@/configs/db/repository/category.repo"
 import { palette } from "@/theme/colors"
+import { mapPathToSvgComponent } from "@/utils/data/svg-mappings"
 import { TCategory } from "@/utils/types/db/category.type"
 import { useEffect, useState } from "react"
 import { Animated, Dimensions, Pressable, StyleSheet, Text, View } from "react-native"
@@ -69,18 +70,30 @@ export const Category = ({ selectedCategoryId, onCategorySelect }: TCategoryProp
     closeDrawer()
   }
 
+  const SvgComponent = mapPathToSvgComponent(selectedCategory?.icon_path || "")
+
   return (
     <View style={styles.container}>
-      <Pressable style={styles.button} onPress={openDrawer}>
-        <LabelIcon
-          width={26}
-          height={26}
-          color={palette.mainCloudBlue}
-          strokeWidth={3}
-          fill={palette.mainDarkBlue}
-        />
-        <Text style={styles.text}>{selectedCategory ? selectedCategory.name : "Chọn danh mục"}</Text>
-      </Pressable>
+      <View style={styles.category}>
+        <Pressable style={[styles.button, selectedCategory ? { flex: 1 } : {}]} onPress={openDrawer}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <LabelIcon
+              width={24}
+              height={24}
+              color={palette.mainCloudBlue}
+              strokeWidth={3}
+              fill={palette.mainDarkBlue}
+            />
+            <Text style={styles.text}>Danh mục</Text>
+          </View>
+          {selectedCategory && SvgComponent && (
+            <View style={styles.selectedCategory}>
+              <SvgComponent width={24} height={24} color="#fff" strokeWidth={2.5} />
+              <Text style={styles.selectedCategoryText}>{selectedCategory.name}</Text>
+            </View>
+          )}
+        </Pressable>
+      </View>
       <CategoryList
         categories={categories}
         selectedId={selectedCategoryId}
@@ -97,23 +110,45 @@ export const Category = ({ selectedCategoryId, onCategorySelect }: TCategoryProp
 
 const styles = StyleSheet.create({
   container: {
-    height: 60,
     paddingHorizontal: 8,
     paddingBottom: 4,
     paddingTop: 8,
+  },
+  category: {
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "stretch",
   },
   button: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 8,
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    gap: 16,
+    flexGrow: 1,
+    paddingLeft: 16,
+    paddingRight: 2,
     borderWidth: 2,
+    height: 50,
     borderColor: palette.slate300,
-    borderRadius: 12,
+    borderRadius: 8,
     backgroundColor: palette.mainCloudBlue,
+  },
+  selectedCategory: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flexGrow: 1,
+    justifyContent: "center",
+    borderColor: palette.mainBlue,
+    borderWidth: 1,
+    borderRadius: 8,
+    backgroundColor: palette.mainBlue,
+    height: 40,
+  },
+  selectedCategoryText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "600",
   },
   text: {
     color: palette.mainDarkBlue,

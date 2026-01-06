@@ -1,32 +1,31 @@
 import CloseIcon from "@/../assets/images/icons/close-icon.svg"
-import FoodDrinksIcon from "@/../assets/images/icons/food-drinks-icon.svg"
-import ShoppingIcon from "@/../assets/images/icons/shopping-icon.svg"
 import { palette } from "@/theme/colors"
+import { mapPathToSvgComponent } from "@/utils/data/svg-mappings"
 import { TCategory } from "@/utils/types/db/category.type"
 import { Animated, FlatList, Modal, Pressable, StyleSheet, Text, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { SvgProps } from "react-native-svg"
 
 const DEFAULT_DRAWER_HEIGHT: number = 400
 
-type TCategoryItem = TCategory & {
-  icon?: React.FC<SvgProps>
+type TCategoryIconProps = {
+  iconPath: string
+  categoryIsSelected?: boolean
 }
 
-const getCategoryIcon = (categoryName: string): React.FC<SvgProps> | undefined => {
-  const iconMap: Record<string, React.FC<SvgProps>> = {
-    "Ăn uống": FoodDrinksIcon,
-    "Mua sắm": ShoppingIcon,
+const CategoryIcon = ({ iconPath, categoryIsSelected }: TCategoryIconProps) => {
+  const SvgComponent = mapPathToSvgComponent(iconPath)
+  if (SvgComponent) {
+    return <SvgComponent width={24} height={24} color={categoryIsSelected ? palette.mainBlue : undefined} />
   }
-  return iconMap[categoryName]
+  return <></>
 }
 
 type TRenderItemProps = {
-  item: TCategoryItem
+  item: TCategory
 }
 
 type TCategoryListProps = {
-  categories: TCategoryItem[]
+  categories: TCategory[]
   selectedId: number | null
   onSelect: (category: TCategory) => void
   isDrawerVisible: boolean
@@ -47,31 +46,26 @@ export const CategoryList = ({
   translateY = new Animated.Value(DEFAULT_DRAWER_HEIGHT),
 }: TCategoryListProps) => {
   const insets = useSafeAreaInsets()
-  console.log('>>> [cate] categories:', categories)
 
   const renderItem = ({ item }: TRenderItemProps) => {
     const isSelected = item.id === selectedId
-    const IconComponent = getCategoryIcon(item.name)
-
     return (
       <Pressable
         style={[
           styles.categoryItem,
           {
-            backgroundColor: isSelected ? palette.mainCloudBlue : palette.slate50,
+            backgroundColor: isSelected ? palette.slate50 : palette.slate50,
             borderColor: isSelected ? palette.mainBlue : palette.slate300,
           },
         ]}
         onPress={() => onSelect(item)}
       >
-        {IconComponent && (
-          <IconComponent width={24} height={24} color={isSelected ? palette.mainBlue : palette.slate500} />
-        )}
+        <CategoryIcon iconPath={item.icon_path} categoryIsSelected={isSelected} />
         <Text
           style={[
             styles.categoryText,
             {
-              color: isSelected ? palette.mainDarkBlue : palette.slate900,
+              color: isSelected ? palette.mainBlue : palette.slate900,
               fontSize: 16,
               fontWeight: isSelected ? "600" : "400",
             },
@@ -118,8 +112,10 @@ export const CategoryList = ({
             <FlatList
               data={categories}
               renderItem={renderItem}
+              numColumns={2}
               keyExtractor={(item) => item.id.toString()}
               contentContainerStyle={styles.listContent}
+              columnWrapperStyle={styles.row}
               ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
             />
           </View>
@@ -139,11 +135,21 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 12,
+    flexDirection: "row",
+    flex: 1,
+  },
+  row: {
+    justifyContent: "space-between",
+    marginBottom: 8,
+    gap: 8,
+    width: "100%",
   },
   categoryItem: {
     flexDirection: "row",
     alignItems: "center",
+    flexWrap: "wrap",
     gap: 12,
+    flexGrow: 1,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 8,

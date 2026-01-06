@@ -10,14 +10,14 @@ export const Description = ({ onContentChange }: TDescriptionProps) => {
   return (
     <AutosizeTextField
       placeholder="Nhập mô tả giao dịch..."
-      styles={descriptionStyles}
+      styles={styles}
       onContentChange={onContentChange}
-      minHeight={112}
+      minHeight={96}
     />
   )
 }
 
-const descriptionStyles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -33,7 +33,7 @@ const descriptionStyles = StyleSheet.create({
     fontFamily: "Inter",
     fontSize: 16,
     color: palette.slate900,
-    backgroundColor: palette.mainCloudBlue,
+    backgroundColor: palette.slate50,
     borderWidth: 2,
     borderColor: palette.slate300,
     borderRadius: 12,
